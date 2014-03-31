@@ -6,21 +6,23 @@
 
 #include "PlumeTypeDefine.h"
 #include "PlumeGraphics.h"
-#include "PlumeFrame.h"
+#include "PlumeContainer.h"
 
 
 namespace Plume
 {
-	class PlumeFrame;
 	class PlumeComponent
 	{
 	protected:
 		Rect posRect;
-		PlumeFrame* frame;
+		PlumeContainer* container;
+
+		friend class PlumeFrame;
+		friend class PlumePanel;
 	public:
 		PlumeComponent(void);
 		~PlumeComponent(void);
-		virtual void setFrame(PlumeFrame* f);
+		virtual void setContainer(PlumeContainer* pContainer);
 		bool isInRect(int px, int py);
 
 		virtual void draw(PlumeGraphics* graphics);

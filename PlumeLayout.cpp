@@ -25,6 +25,6 @@ void PlumeLayout::deleteComponent(PlumeComponent* component)
 }
 
 
-void PlumeLayout::flushClientRect(const Rect* rect)
+void PlumeLayout::flushContainerSize(const int width, const int height)
 {
 }

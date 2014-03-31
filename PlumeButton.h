@@ -14,11 +14,14 @@ namespace Plume
 		ConstStr text;
 		struct ButtonColorStyle
 		{
-			ButtonColorStyle(PlumeColor top, PlumeColor middle1, PlumeColor middle2, PlumeColor buttom, PlumeColor frame1, PlumeColor frame2)
-				:colorTop(top), colorMiddle1(middle1), colorMiddle2(middle2), colorBottom(buttom), colorFrame1(frame1), colorFrame2(frame2)
+			ButtonColorStyle(Color top, Color middle1, Color middle2, Color buttom, Color frame1, Color frame2)
+				: brushOne(Brush::GRADUAL, top, middle1, Brush::VERTICAL),
+				brushTwo(Brush::GRADUAL, middle2, buttom, Brush::VERTICAL),
+				framePenOne(frame1), framePenTwo(frame2)
 			{
 			}
-			PlumeColor colorTop, colorMiddle1, colorMiddle2, colorBottom, colorFrame1, colorFrame2;
+			Brush brushOne, brushTwo;
+			Pen framePenOne, framePenTwo;
 		};
 		ButtonColorStyle* currentStyle;
 		ButtonColorStyle moveOnStyle, unclickedStyle, clickedStyle;

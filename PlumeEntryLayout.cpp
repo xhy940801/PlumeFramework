@@ -3,8 +3,14 @@
 using namespace Plume;
 
 
-PlumeEntryLayout::PlumeEntryLayout(int height, int rGap, int cGap)
-	:entryHeight(height), roundedGap(rGap), componentGap(cGap)
+PlumeEntryLayout::PlumeEntryLayout(int height, int roundGap, int cGap)
+	: entryHeight(height), leftGap(roundGap), topGap(roundGap), rightGap(roundGap), componentGap(cGap)
+{
+}
+
+
+PlumeEntryLayout::PlumeEntryLayout(int height, int lGap, int tGap, int rGap, int cGap)
+	: entryHeight(height), leftGap(lGap), topGap(tGap), rightGap(rGap), componentGap(cGap)
 {
 }
 
@@ -16,7 +22,8 @@ PlumeEntryLayout::~PlumeEntryLayout(void)
 
 void PlumeEntryLayout::addComponent(PlumeComponent* component)
 {
-	component->changePosRect(clientRect.left, clientRect.top + components.size() * (entryHeight + componentGap), clientRect.right, clientRect.top + components.size() * (entryHeight + componentGap) + entryHeight);
+	int topPos = topGap + components.size() * (entryHeight + componentGap);
+	component->changePosRect(leftGap, topGap, containerWidth - rightGap, topGap + entryHeight);
 	components.push_front(component);
 }
 
@@ -33,20 +40,25 @@ void PlumeEntryLayout::deleteComponent(PlumeComponent* component)
 			break;
 		}
 	}
-	for(;it != components.end();++it,++i)
+	int addHeight = entryHeight + componentGap;
+	int rightPos = containerWidth - rightGap;
+	for(int n=topGap + i * addHeight;it != components.end();++it,n+=addHeight)
 	{
-		(*it)->changePosRect(clientRect.left, clientRect.top + components.size() * (entryHeight + componentGap), clientRect.right, clientRect.top + components.size() * (entryHeight + componentGap) + entryHeight);
+		(*it)->changePosRect(leftGap, n, rightPos, n + entryHeight);
 	}
 }
 
 
-void PlumeEntryLayout::flushClientRect(const Rect* rect)
+void PlumeEntryLayout::flushContainerSize(const int width, const int height)
 {
-	clientRect.left = rect->left + roundedGap;
-	clientRect.top = rect->top + roundedGap;
-	clientRect.right = rect->right - roundedGap;
-	clientRect.bottom = rect->bottom - roundedGap;
-	std::list<PlumeComponent*>::iterator it = components.begin();
-	for(int i=clientRect.top + (components.size() - 1) * (entryHeight + componentGap);it != components.end();++it,i-=(entryHeight + componentGap))
-		(*it)->changePosRect(clientRect.left, i, clientRect.right, i + entryHeight);
+	if(this->isChange(width, height))
+	{
+		containerWidth = width;
+		containerHeight = height;
+		std::list<PlumeComponent*>::iterator it = components.begin();
+		int addHeight = entryHeight + componentGap;
+		int rightPos = width - rightGap;
+		for(int i=topGap;it != components.end();++it,i+=addHeight)
+			(*it)->changePosRect(leftGap, i, rightPos, i + entryHeight);
+	}
 }

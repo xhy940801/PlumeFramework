@@ -4,9 +4,10 @@ using namespace Plume;
 
 
 PlumePanel::PlumePanel(void)
-	: backgroundImage(0), backgroundColor(Gdiplus::Color::White), frameType(0), frameWidth(1), otherFrameInfo(3)
+	: backgroundColor(Color::White), frameLineStyle(Pen::SOLID), frameStyle(DEFAULT), frameWidth(1), frameXRadius(3), frameYRadius(3)
 {
 	layout = &PlumeLayout::defaultLayout;
+	initPanel();
 }
 
 
@@ -15,60 +16,48 @@ PlumePanel::~PlumePanel(void)
 }
 
 
+void PlumePanel::initPanel()
+{
+	if(frameStyle != DEFAULT)
+	{
+		framePen.setStyle(frameLineStyle);
+	}
+}
+
+
 void PlumePanel::draw(PlumeGraphics* graphics)
 {
-	if(backgroundImage)
+	graphics->setBrush(backgroundBrush);
+	graphics->setPen(framePen);
+	graphics->drawRectangleFi(posRect.left, posRect.top, posRect.right - posRect.left, posRect.bottom - posRect.top);
+	switch(frameStyle)
 	{
-		graphics->drawImage(*backgroundImage, posRect.left, posRect.top, posRect.right - posRect.left, posRect.bottom - posRect.top);
+	case DEFAULT:
+		break;
+	case RECTANGLE:
+		graphics->drawRectangleFr(posRect.left, posRect.top, posRect.right - posRect.left, posRect.bottom - posRect.top);
+		break;
+	case ELLIPSE:
+		graphics->drawEllipseFr(posRect.left, posRect.top, posRect.right - posRect.left, posRect.bottom - posRect.top);
+		break;
+	case ROUNDRECTANGLE:
+		graphics->drawRoundRectangleFr(posRect.left, posRect.top, posRect.right - posRect.left, posRect.bottom - posRect.top, frameXRadius, frameYRadius);
+		break;
+	default:
+		break;
 	}
-	else
-	{
-		graphics->fillRectangle(backgroundColor, posRect.left, posRect.top, posRect.right - posRect.left, posRect.bottom - posRect.top);
-	}
-	if(frameType)
-	{
-		switch(frameType & 0x0000ffff)
-		{
-		case SOLID:
-			graphics->setLineStyle(PlumeGraphics::LineStyle::DashStyleSolid);
-			break;
-		case DASH:
-			graphics->setLineStyle(PlumeGraphics::LineStyle::DashStyleDash);
-			break;
-		case DOT:
-			graphics->setLineStyle(PlumeGraphics::LineStyle::DashStyleDot);
-			break;
-		case DASHDOT:
-			graphics->setLineStyle(PlumeGraphics::LineStyle::DashStyleDashDot);
-			break;
-		case DASHDOTDOT:
-			graphics->setLineStyle(PlumeGraphics::LineStyle::DashStyleDashDotDot);
-			break;
-		}
-		Rect insertRect = posRect;
-		graphics->getInnerRect(insertRect, frameWidth);
-		switch(frameType & 0xffff0000)
-		{
-		case RECTANGLE:
-			graphics->drawRectangle(frameColor, this->frameWidth, insertRect.left, insertRect.top, insertRect.right - insertRect.left, insertRect.bottom - insertRect.top);
-			break;
-		case ELLIPSE:
-			graphics->drawEllipse(frameColor, this->frameWidth, insertRect.left, insertRect.top, insertRect.right - insertRect.left, insertRect.bottom - insertRect.top);
-			break;
-		case ROUNDEDRECTANGLE:
-			graphics->drawRoundedRectangle(frameColor, this->frameWidth, insertRect.left, insertRect.top, insertRect.right, insertRect.bottom, this->otherFrameInfo);
-			break;
-		}
-	}
-	for(int i=0;i<components.size();++i)
+	Point oldOffset;
+	graphics->setOffsetEx(posRect.left, posRect.top, oldOffset);
+	for(unsigned int i=0;i<components.size();++i)
 		components[i]->draw(graphics);
+	graphics->setOffset(oldOffset);
 }
 
 
 void PlumePanel::changePosRect(const Rect& rect)
 {
 	posRect = rect;
-	layout->flushClientRect(&posRect);
+	layout->flushContainerSize(posRect.right - posRect.left, posRect.bottom - posRect.top);
 }
 
 
@@ -78,7 +67,7 @@ void PlumePanel::changePosRect(const int left, const int top, const int right, c
 	posRect.top = top;
 	posRect.right = right;
 	posRect.bottom = bottom;
-	layout->flushClientRect(&posRect);
+	layout->flushContainerSize(right - left, bottom - top);
 }
 
 
@@ -227,7 +216,6 @@ bool PlumePanel::systemKeyUp(VirtualKeyCode vkCode, KeyInfo keyInfo)
 void PlumePanel::setBackgroundColor(Gdiplus::Color* color)
 {
 	backgroundColor = *color;
-	backgroundImage = 0;
 }
 
 
@@ -235,7 +223,7 @@ int PlumePanel::addComponent(PlumeComponent* component)
 {
 	components.push_back(component);
 	layout->addComponent(component);
-	component->setFrame(this->frame);
+	component->setContainer(this);
 	return components.size() - 1;
 }
 
@@ -264,12 +252,16 @@ void PlumePanel::setLayout(PlumeLayout* PlumeLayout)
 }
 
 
-void PlumePanel::setFrame(unsigned int type, unsigned int width,const PlumeColor* color, unsigned int otherInfo)
+void PlumePanel::setFrame(Pen::PenStyle lineStyle, FrameStyle style, unsigned int width, const Color& color, int xRadius, int yRadius)
 {
 	this->frameWidth = width;
-	this->frameType = type;
-	this->otherFrameInfo = otherInfo;
-	this->frameColor = *color;
+	this->frameLineStyle = lineStyle;
+	this->frameStyle = style;
+	this->frameXRadius = xRadius;
+	this->frameYRadius = yRadius;
+	this->frameColor = color;
+
+	this->framePen.setStatus(frameColor, lineStyle, frameWidth, Pen::INSIDEFRAME);
 }
 //
 //void Plume::PlumePanel::drawRoundedRectangle(Gdiplus::Graphics* graphics, const Rect& rect, unsigned char width)
@@ -288,20 +280,29 @@ void PlumePanel::setFrame(unsigned int type, unsigned int width,const PlumeColor
 //}
 
 
- void PlumePanel::setFrame(PlumeFrame* f)
- {
-	 this->frame = f;
-	 for(int i=0;i<components.size();++i)
-		 components[i]->setFrame(f);
- }
+bool PlumePanel::mouseMove(int px, int py, KeyCondition condition)
+{
+	for(unsigned int i=0;i<components.size();++i)
+	{
+		if(components[i]->mouseMove(px, py, condition))
+			return true;
+	}
+	return false;
+}
 
 
- bool PlumePanel::mouseMove(int px, int py, KeyCondition condition)
- {
-	 for(unsigned int i=0;i<components.size();++i)
-	 {
-		 if(components[i]->mouseMove(px, py, condition))
-			 return true;
-	 }
-	 return false;
- }
+void PlumePanel::setBackgroundColor(const Color& color)
+{
+	this->backgroundBrush.setColor(color);
+}
+
+
+void PlumePanel::flush(const Rect& rect)
+{
+	Rect newRect;
+	newRect.left = rect.left + posRect.left;
+	newRect.top = rect.top + posRect.top;
+	newRect.right = rect.right + posRect.left;
+	newRect.bottom = rect.bottom + posRect.top;
+	this->container->flush(newRect);
+}

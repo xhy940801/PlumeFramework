@@ -5,6 +5,7 @@
 #include "PlumeComponent.h"
 #include "PlumeTypeDefine.h"
 #include "PlumeLayout.h"
+#include "PlumeContainer.h"
 
 #include <vector>
 
@@ -12,16 +13,24 @@ namespace Plume
 {
 
 	class PlumePanel :
-		public Plume::PlumeComponent
+		public Plume::PlumeComponent, public Plume::PlumeContainer
 	{
+	public:
+		enum FrameStyle
+		{
+			DEFAULT, RECTANGLE, ELLIPSE, ROUNDRECTANGLE
+		};
 	protected:
-		PlumeColor backgroundColor;
-		PlumeImage* backgroundImage;
+		Color backgroundColor;
 
-		unsigned int frameType;
+		Pen::PenStyle frameLineStyle;
+		FrameStyle frameStyle;
 		unsigned int frameWidth;
-		unsigned int otherFrameInfo;
-		PlumeColor frameColor;
+		int frameXRadius, frameYRadius;
+		Color frameColor;
+
+		Pen framePen;
+		Brush backgroundBrush;
 
 		std::vector<PlumeComponent*> components;
 		PlumeLayout *layout;
@@ -58,23 +67,12 @@ namespace Plume
 		int addComponent(PlumeComponent* component);
 		PlumeComponent* deleteComponent(unsigned int n);
 		void setLayout(PlumeLayout* PlumeLayout);
-		void setFrame(unsigned int type, unsigned int width,const Gdiplus::Color* color, unsigned int otherInfo = 3);
+		void setFrame(Pen::PenStyle lineStyle, FrameStyle style, unsigned int width, const Gdiplus::Color& color, int xRadius = 3, int yRadius = 3);
+		void setBackgroundColor(const Color& color);
 	//	void drawRoundedRectangle(Gdiplus::Graphics* graphics, const Rect& rect, unsigned char width);
 
-		 void setFrame(PlumeFrame* f);
-
-	public:
-		static const unsigned int DEFAULT = 0x00000000;
-
-		static const unsigned int SOLID = 0x00000001;
-		static const unsigned int DASH = 0x00000002;
-		static const unsigned int DOT = 0x00000003;
-		static const unsigned int DASHDOT = 0x00000004;
-		static const unsigned int DASHDOTDOT = 0x00000005;
-
-		static const unsigned int RECTANGLE = 0x00010000;
-		static const unsigned int ELLIPSE = 0x00020000;
-		static const unsigned int ROUNDEDRECTANGLE = 0x00030000;
+		void initPanel();
+		void flush(const Rect& rect);
 	};
 
 }

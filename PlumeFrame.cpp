@@ -121,19 +121,27 @@ void PlumeFrame::rePaint(void)
 
 	HDC hdc;
 	hdc = BeginPaint(hwnd, &ps);
-	Gdiplus::Bitmap bmp(ps.rcPaint.right,ps.rcPaint.bottom);
-	Gdiplus::Graphics graphics(&bmp);
-	layout->flushClientRect(&clientRect);
-	graphics.Clear(Gdiplus::Color::White);
-	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-	PlumeGraphics plumeGraphics(&graphics);
+	this->layout->flushContainerSize(clientRect.right - clientRect.left, clientRect.bottom - clientRect.top);
+	HDC compatibleDC = CreateCompatibleDC(hdc);
+	HBITMAP bitmap = CreateCompatibleBitmap(hdc, clientRect.right, clientRect.bottom);
+	SelectObject(compatibleDC, bitmap);
+	
+	draw(compatibleDC);
+
+	BitBlt(hdc, 0, 0, clientRect.right, clientRect.bottom, compatibleDC, 0, 0,SRCCOPY);
+	EndPaint(hwnd, &ps);
+}
+
+
+void PlumeFrame::draw(HDC hdc)
+{
+	PlumeGraphics plumeGraphics(hdc);
+	Point oldOffset;
+	plumeGraphics.getOffset(oldOffset);
+	plumeGraphics.setOffset(clientRect.left, clientRect.top);
 	for(unsigned int i=0;i<components.size();++i)
 		components[i]->draw(&plumeGraphics);
-	Gdiplus::Graphics g(hdc);
-	Gdiplus::CachedBitmap cachedBmp(&bmp,&g);
-	g.DrawCachedBitmap(&cachedBmp, 0, 0);
-//	g.DrawImage(&bmp, clientRect.left, clientRect.top, clientRect.right, clientRect.bottom);
-	EndPaint(hwnd, &ps);
+	plumeGraphics.setOffset(oldOffset);
 }
 
 
@@ -297,32 +305,34 @@ int PlumeFrame::addComponent(PlumeComponent* pComponent)
 {
 	components.push_back(pComponent);
 	layout->addComponent(pComponent);
-	pComponent->setFrame(this);
+	pComponent->setContainer(this);
 	return components.size() - 1;
 }
 
 
-void PlumeFrame::flush(void)
+void PlumeFrame::flush(const Rect& rect)
 {
-	GetWindowRect(hwnd, &windowsRect);
-	GetClientRect(hwnd, &clientRect);
-
-	HDC hdc;
-	hdc = GetDC(hwnd);
-	Gdiplus::Bitmap bmp(clientRect.right,clientRect.bottom);
-	Gdiplus::Graphics graphics(&bmp);
-	layout->flushClientRect(&clientRect);
-	graphics.Clear(Gdiplus::Color::White);
-	graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-	graphics.SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAliasGridFit);
-	PlumeGraphics plumeGraphics(&graphics);
-	for(unsigned int i=0;i<components.size();++i)
-		components[i]->draw(&plumeGraphics);
-	Gdiplus::Graphics g(hdc);
-	Gdiplus::CachedBitmap cachedBmp(&bmp,&g);
-	g.DrawCachedBitmap(&cachedBmp, 0, 0);
-//	g.DrawImage(&bmp, clientRect.left, clientRect.top, clientRect.right, clientRect.bottom);
-	ReleaseDC(hwnd, hdc);
+	Rect newRect;
+	newRect.left = rect.left + clientRect.left;
+	newRect.top = rect.top + clientRect.top;
+	newRect.right = rect.right + clientRect.left;
+	newRect.bottom = rect.bottom + clientRect.top;
+	InvalidateRect(hwnd, &newRect, false);
+//	GetWindowRect(hwnd, &windowsRect);
+//	GetClientRect(hwnd, &clientRect);
+//
+//	HDC hdc;
+//	hdc = GetDC(hwnd);
+//	layout->flushClientRect(&clientRect);
+//	HDC compatibleDC = CreateCompatibleDC(hdc);
+//	HBITMAP bitmap = CreateCompatibleBitmap(hdc, clientRect.right, clientRect.bottom);
+//	SelectObject(compatibleDC, bitmap);
+//
+//	draw(compatibleDC);
+//
+//	BitBlt(hdc, 0, 0, clientRect.right, clientRect.bottom, compatibleDC, 0, 0,SRCCOPY);
+////	g.DrawImage(&bmp, clientRect.left, clientRect.top, clientRect.right, clientRect.bottom);
+//	ReleaseDC(hwnd, hdc);
 }
 
 

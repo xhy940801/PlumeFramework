@@ -11,7 +11,7 @@ namespace Plume
 	class PlumeLayout
 	{
 	protected:
-		Rect clientRect;	// 父窗口的大小
+		int containerWidth, containerHeight;	//父窗口尺寸
 
 	public:
 		PlumeLayout(void);
@@ -19,13 +19,13 @@ namespace Plume
 
 		virtual void addComponent(PlumeComponent* component);
 		virtual void deleteComponent(PlumeComponent* component);
-		virtual void flushClientRect(const Rect* rect);
+		virtual void flushContainerSize(const int width, const int height);
 
 		static PlumeLayout defaultLayout;
 	protected:
-		bool isChange(const Rect& rect)
+		bool isChange(const int width, const int height)
 		{
-			return rect.left == clientRect.left && rect.right == clientRect.right && rect.top == clientRect.top && rect.bottom == clientRect.bottom;
+			return containerWidth != width || containerHeight != height;
 		}
 	};
 

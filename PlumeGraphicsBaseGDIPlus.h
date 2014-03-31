@@ -39,7 +39,7 @@ namespace Plume
 		bool fillRectangle(PlumeColor color, int x1, int y1, int width, int height);
 		void setLineStyle(LineStyle style);
 		bool fillRectangleWithLinearGradient(PlumeColor color1, PlumeColor color2, int x1, int y1, int width, int height, LinearGradientStyle style);
-		void getInnerRect(Rect& rect, unsigned int width);
+		static void getInnerRect(Rect& rect, unsigned int width);
 		bool drawPoint(PlumeColor color, int x, int y);
 		bool drawUnCornerRectangle(PlumeColor color, int lineWidth, int x1, int y1, int x2, int y2, int radius);
 		bool drawCorner(PlumeColor color, int x1, int y1, int x2, int y2);

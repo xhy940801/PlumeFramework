@@ -1,6 +1,12 @@
-#include "PlumeGraphicsBaseGDIPlus.h"
+#pragma once
+
+#include "PlumeGraphicsBaseGDI.h"
+#include "PenBaseGDI.h"
+#include "BrushBaseGDI.h"
 
 namespace Plume
 {
-	typedef PlumeGraphicsBaseGDIPlus PlumeGraphics;
+	typedef PlumeGraphicsBaseGDI PlumeGraphics;
+	typedef PenBaseGDI Pen;
+	typedef BrushBaseGDI Brush;
 }

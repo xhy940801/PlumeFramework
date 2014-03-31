@@ -32,9 +32,6 @@ int WINAPI WinMain(	HINSTANCE hInstance,
 	if(!RegisterClassEx(&winClass))
 		return 0;
 
-	ULONG_PTR gdiplusToken;
-	Gdiplus::GdiplusStartupInput gdiInput;
-	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiInput, NULL);
 	main();
 	while(GetMessage(&msg, NULL, 0, 0))
 	{
@@ -42,7 +39,6 @@ int WINAPI WinMain(	HINSTANCE hInstance,
 		DispatchMessage(&msg);
 	}
 	return msg.wParam;
-	Gdiplus::GdiplusShutdown(gdiplusToken);
 }
 
 

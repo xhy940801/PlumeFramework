@@ -122,7 +122,7 @@ bool PlumeComponent::mouseMove(int px, int py, KeyCondition condition)
 }
 
 
-void PlumeComponent::setFrame(PlumeFrame* f)
+void PlumeComponent::setContainer(PlumeContainer* pContainer)
 {
-	frame = f;
+	container = pContainer;
 }

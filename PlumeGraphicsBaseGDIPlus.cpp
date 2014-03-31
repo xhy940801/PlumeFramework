@@ -96,6 +96,7 @@ bool PlumeGraphicsBaseGDIPlus::fillRectangleWithLinearGradient(PlumeColor color1
 	}
 }
 
+
 void PlumeGraphicsBaseGDIPlus::getInnerRect(Rect& rect, unsigned int width)
 {
 	rect.left += width/2;

@@ -10,6 +10,7 @@
 #include "PlumeTypeDefine.h"
 
 #include "PlumeComponent.h"
+#include "PlumeContainer.h"
 #include "PlumeLayout.h"
 
 #include "PlumeGraphics.h"
@@ -18,7 +19,8 @@ namespace Plume
 {
 	class PlumeComponent;
 	class PlumeLayout;
-	class PlumeFrame
+	class PlumeFrame :
+		public PlumeContainer
 	{
 	protected:
 		static std::map<HWND, PlumeFrame*> hwndMap;
@@ -65,6 +67,7 @@ namespace Plume
 		bool flushPos(void);
 		void onCreate(void);
 		void rePaint(void);
+		void draw(HDC hdc);
 		void destroy(void);
 
 		int hwndToInt(void)
@@ -107,7 +110,7 @@ namespace Plume
 
 		void init(void);
 		int addComponent(PlumeComponent* pComponent);
-		void flush(void);
+		void flush(const Rect& rect);
 		PlumeComponent* deleteComponent(unsigned int n);
 		
 		void setLayout(PlumeLayout* PlumeLayout);

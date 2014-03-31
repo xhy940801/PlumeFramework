@@ -15,16 +15,17 @@ namespace Plume
 	{
 	private:
 		int entryHeight;
-		int roundedGap;
+		int leftGap, topGap, rightGap;
 		int componentGap;
 		std::list<PlumeComponent*> components;
 	public:
-		PlumeEntryLayout(int height, int rGap = 2, int cGap = 2);
+		PlumeEntryLayout(int height, int roundGap = 2, int cGap = 2);
+		PlumeEntryLayout(int height, int lGap, int tGap, int rGap, int cGap);
 		~PlumeEntryLayout(void);
 
 		void addComponent(PlumeComponent* component);
 		void deleteComponent(PlumeComponent* component);
-		void flushClientRect(const Rect* rect);
+		void flushContainerSize(const int width, const int height);
 	};
 
 }
